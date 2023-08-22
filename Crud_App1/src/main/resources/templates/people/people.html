@@ -10,7 +10,9 @@
     <a th:href="@{/people/{id}(id=${person.getId})}" th:text="${person.getName()}">user</a>
 </div>
 
-<form th:action="@{people/new}">
+<hr/>
+
+<form href="/people/new">
     <button>Create new person</button>
 </form>
 
