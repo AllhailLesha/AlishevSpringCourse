@@ -15,7 +15,7 @@ public class PersonDAO {
 
     private static final String URL = "jdbc:postgresql://localhost:5432/first_db";
     private static final String USERNAME = "postgres";
-    private static final String PASSWORD= "admin";
+    private static final String PASSWORD = "admin";
 
     private static Connection connection;
 
@@ -36,10 +36,9 @@ public class PersonDAO {
     public List<Person> getPeople() {
         List<Person> people = new ArrayList<>();
 
-        try {
-            Statement statement = connection.createStatement();// Содержит sql запрос к базе данных
+        try (Statement statement = connection.createStatement();) {
             String SQL = "SELECT * FROM Person";
-            ResultSet resultSet =  statement.executeQuery(SQL);
+            ResultSet resultSet = statement.executeQuery(SQL);
 
             while (resultSet.next()) {
                 Person person = new Person();
@@ -59,32 +58,70 @@ public class PersonDAO {
     }
 
     public Person getPerson(int id) {
-  //      return people.stream().filter(person -> person.getId() == id).findAny().orElse(null);
-        return null;
+        Person person = new Person();
+
+        try (PreparedStatement preparedStatement =
+                     connection.prepareStatement("select * from Person where id = ?");) {
+
+            preparedStatement.setInt(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery(); // как я понял, если мы получаем какие-то поля из бд,
+            // то должны использовать resultSet
+
+            resultSet.next();
+
+            person.setId(resultSet.getInt("id"));
+            person.setName(resultSet.getString("name"));
+            person.setAge(resultSet.getInt("age"));
+            person.setEmail(resultSet.getString("email"));
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return person;
     }
 
     public void save(Person person) {
-//        person.setId(++PEOPLE_COUNT);
-//        people.add(person);
+        try (PreparedStatement preparedStatement
+                     = connection.prepareStatement("insert into Person values (1, ?, ?, ?)");) {
 
-        try {
-            Statement statement = connection.createStatement();
-            String SQL = "INSERT INTO Person VALUES (" + 1 + ",'" + person.getName()  + "'," + person.getAge() + ",'" + person.getEmail() + "')";
+            preparedStatement.setString(1, person.getName());
+            preparedStatement.setInt(2, person.getAge());
+            preparedStatement.setString(3, person.getEmail());
 
-            statement.executeUpdate(SQL);
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void update(int id, Person updatedPerson) {
-//        Person personToBeUpdated = getPerson(id);
-//        personToBeUpdated.setName(updatedPerson.getName());
-//        personToBeUpdated.setEmail(updatedPerson.getEmail());
-//        personToBeUpdated.setAge(updatedPerson.getAge());
+
+        try (PreparedStatement preparedStatement =
+                     connection.prepareStatement("update Person set name=?, age=?, email=? where id=?");) {
+
+            preparedStatement.setString(1, updatedPerson.getName());
+            preparedStatement.setInt(2, updatedPerson.getAge());
+            preparedStatement.setString(3, updatedPerson.getEmail());
+            preparedStatement.setInt(4, id);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void delete(int id) {
-//        people.removeIf(person -> person.getId() == id);
+
+        try (PreparedStatement preparedStatement
+                     = connection.prepareStatement("DELETE FROM Person WHERE id=?")) {
+
+            preparedStatement.setInt(1, id);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

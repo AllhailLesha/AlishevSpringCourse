@@ -12,13 +12,14 @@
 
 <hr/>
 
+<form th:method="DELETE" th:action="@{/people/{id}(id=${person.getId()})}">
+    <input type="submit" value="Delete">
+</form>
+
 <form th:action="@{/people/{id}/edit(id=${person.getId()})}">
-    <button>Edit</button>
+    <input type="submit" value="Edit">
 </form>
 
 <br/>
-<form th:method="DELETE" th:action="@{/people/{id}(id=${person.getId()})}">
-    <button>Delete</button>
-</form>
 </body>
 </html>
